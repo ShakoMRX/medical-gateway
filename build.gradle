@@ -1,0 +1,60 @@
+plugins {
+    id 'org.springframework.boot' version '2.7.4'
+    id 'io.spring.dependency-management' version '1.0.14.RELEASE'
+    id 'java'
+    id 'com.google.cloud.tools.jib' version '3.2.1'
+}
+
+group = 'io.optimogroup.xracoon.asclepius'
+version = '0.0.6-SNAPSHOT'
+sourceCompatibility = '17'
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    set('springCloudVersion', "2021.0.3")
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+def getDockerLoginCommand = {
+    def ecrStdOut = new ByteArrayOutputStream()
+    exec {
+        //commandLine
+        commandLine 'aws', 'ecr', 'get-login-password', '--profile', 'shako'
+        standardOutput = ecrStdOut
+    }
+    final String dockerLoginCommand = ecrStdOut.toString()
+    return dockerLoginCommand
+}
+
+jib {
+    to {
+        image = "395521588212.dkr.ecr.eu-central-1.amazonaws.com/medical-gateway"
+        auth {
+            username = "AWS"
+            password = getDockerLoginCommand()
+        }
+        tags = [project.version]
+    }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
