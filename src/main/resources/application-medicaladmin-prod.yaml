@@ -1,0 +1,35 @@
+server:
+  port: 8089
+spring:
+  cloud:
+    gateway:
+      default-filters:
+        - TokenRelay=
+      routes:
+        - id: API
+          uri: http://medical-management-web-service.medical.svc.cluster.local
+          predicates:
+            - Path=/asclepius/**
+        - id: WEB
+          uri: http://medical-management-web-front-service.medical.svc.cluster.local
+          predicates:
+            - Path=/**
+
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: demo-client
+            client-secret: dd1zsKouT3UtZHiP6bJ6YCjIVTO1YPrZ
+            authorization-grant-type: authorization_code
+            redirect-uri: https://asclepius.pirveli.ge/login/oauth2/code/keycloak
+            scope:
+              - email
+              - profile
+              - roles
+              - openid
+        provider:
+          keycloak:
+            issuer-uri: https://auth.pirveli.ge/realms/xracoon-demo
+            user-name-attribute: preferred_username

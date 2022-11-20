@@ -33,15 +33,18 @@ public class SecurityConfig {
         DelegatingServerAuthenticationEntryPoint nonAjaxLoginEntryPoint = new DelegatingServerAuthenticationEntryPoint(entryPoints);
 
 
-
         nonAjaxLoginEntryPoint.setDefaultEntryPoint(new RedirectServerAuthenticationEntryPoint("/oauth2/authorization/keycloak"));
 
 
         SecurityWebFilterChain chain = http.csrf().disable()
                 .authorizeExchange(authorizeExchangeSpec ->
                         authorizeExchangeSpec.
-                                pathMatchers("/api/**","/login").permitAll().anyExchange().authenticated()
+                                pathMatchers("/svg/**", "/png/**", "/medical/**", "/css/**", "/twilio/**", "/asclepius/**", "/homePage", "/api/**", "/login").permitAll().anyExchange().authenticated()
+                                .and()
+                                .oauth2ResourceServer()
+                                .jwt()
                 )
+//                oauth2ResourceServer(ServerHttpSecurity.OAuth2ResourceServerSpec::jwt)
                 .oauth2Login()
                 .and()
                 .exceptionHandling().authenticationEntryPoint(nonAjaxLoginEntryPoint)
